@@ -1,0 +1,7 @@
+---
+
+- import_tasks: install.yml
+  when: not ph_remove
+
+- import_tasks: remove.yml
+  when: ph_remove

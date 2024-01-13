@@ -1,0 +1,121 @@
+---
+# Issues with docker python package >=7.0.0
+# https://github.com/docker/docker-py/releases/tag/7.0.0
+# https://github.com/docker/docker-py/issues/3194
+- name: Ensure python docker package
+  pip:
+    name:
+      - docker==6.1.3
+      - docker-compose
+    extra_args: --user
+    executable: pip3
+  become_user: "{{ ph_user }}"
+
+- name: ensure deployment user for ansible_docker_pihole
+  user:
+    name: "{{ ph_user }}"
+    state: "{{ ph_state | default('present') }}"
+    create_home: true
+
+- name: Ensure user is added to the docker group.
+  user:
+    name: "{{ ph_user }}"
+    groups: docker
+    append: true
+
+- name: Ensure repository paths are present
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ ph_user }}"
+  loop:
+   - "{{ repository_src }}"
+   - "{{ repository_src }}/scripts"
+
+- name: ensure external network exists
+  community.docker.docker_network:
+    name: "{{ ph_ext_net }}"
+    driver: bridge
+    attachable: true
+    state: present
+
+- name: ansible_docker_pihole | test docker-compose changed
+  template:
+    src: "docker-compose.yml"
+    dest: "{{ repository_src }}/docker-compose.yml"
+    owner: "{{ ph_user }}"
+    mode: "600"
+  check_mode: true
+  register: repo_copy_test
+
+- name: ansible_docker_pihole | Stop services since compose has changed
+  community.docker.docker_compose:
+    project_name: "{{ ph_project_name }}"
+    project_src: "{{ repository_src }}"
+    state: absent
+    files:
+      - docker-compose.yml
+  become_user: "{{ ph_user }}"
+  when:
+  - not ph_remove
+  - repo_copy_test.changed
+  ignore_errors: true
+
+- name: ansible_docker_pihole | Copy docker-compose.yml
+  template:
+    src: "docker-compose.yml"
+    dest: "{{ repository_src }}/docker-compose.yml"
+    owner: "{{ ph_user }}"
+    mode: "600"
+  register: repo_copy
+
+- name: Run pre-start commands
+  command: "{{ item }}"
+  loop: "{{ ph_pre_startup_commands }}"
+  become_user: "{{ ph_user }}"
+
+- name: ansible_docker_pihole | ensure services are running
+  community.docker.docker_compose:
+    project_name: "{{ ph_project_name }}"
+    project_src: "{{ repository_src }}"
+    debug: true
+    state: "{{ ph_state }}"
+    build: false
+    files:
+      - docker-compose.yml
+  become_user: "{{ ph_user }}"
+  when: not ph_remove
+
+- name: ansible_docker_pihole | Run post-shutdown commands
+  command: "{{ item }}"
+  loop: "{{ ph_post_shutdown_commands }}"
+  become_user: "{{ ph_user }}"
+
+- name: ansible_docker_pihole | Put auto-update script
+  copy:
+    content: |
+      #!/usr/bin/env bash
+      
+      set - eu
+      cd {{ repository_src }}
+      docker compose pull
+      docker compose up -d
+
+    dest: "{{ repository_src }}/autoupdate.sh"
+    owner: "{{ ph_user }}"
+    mode: "770"
+    state: "{{ 'present' if ph_auto_update else 'absent' }}"
+
+- name: Set auto-update cron to {{ cron_state }}
+  cron:
+    name: update all services for ansible_docker_pihole
+    job: "{{ repository_src }}/autoupdate.sh"
+    hour: "{{ ph_auto_update_cron_hour }}"
+    minute: "{{ ph_auto_update_cron_minute }}"
+    weekday: "{{ ph_auto_update_cron_weekday }}"
+    month: "{{ ph_auto_update_cron_month }}"
+    user: "{{ ph_user }}"
+    state: "{{ cron_state }}"
+  become_user: "{{ ph_user }}"
+  vars:
+    cron_state: "{{ 'present' if ph_auto_update else 'absent' }}"
