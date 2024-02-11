@@ -17,7 +17,9 @@
     ph_webtheme: default-dark
     ph_host_port_pihole_53: 53
     ph_host_port_pihole_80: 80
-    ph_releases: {'pihole': 'latest'}
+    ph_releases:
+      pihole: "latest"
+
     ph_pihole_mount_dir: "./etc-pihole"
     ph_dnsmasq_d_mount_dir: "./etc-dnsmasq.d"
     # backups
@@ -26,6 +28,7 @@
     - ./etc-dnsmasq.d
     # ansible deploy defaults
     ph_user: dockerusr
+    ph_user_id: 1002
     ph_ext_net: proxy-tier
     ph_project_name: ansible_docker_pihole
   roles:
