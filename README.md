@@ -47,9 +47,9 @@ services:
 | -------- |----------|-----| ------- |-----------|
 | `ph_custom_cache_size` | 10000 | `CUSTOM_CACHE_SIZE` | pihole | False |
 | `ph_dhcp_active` | false | `DHCP_ACTIVE` | pihole | False |
-| `ph_dnssec` | true | `DNSSEC` | pihole | False |
 | `ph_dns_bogus_priv` | true | `DNS_BOGUS_PRIV` | pihole | False |
 | `ph_dns_fqdn_required` | true | `DNS_FQDN_REQUIRED` | pihole | False |
+| `ph_dnssec` | true | `DNSSEC` | pihole | False |
 | `ph_ftlconf_local_ipv4` | localhost | `FTLCONF_LOCAL_IPV4` | pihole | False |
 | `ph_ipv6` | true | `IPv6` | pihole | False |
 | `ph_pihole_dns` | 9.9.9.9;9.9.9.10 | `PIHOLE_DNS` | pihole | False |

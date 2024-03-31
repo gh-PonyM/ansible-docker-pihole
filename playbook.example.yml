@@ -3,9 +3,9 @@
   vars:
     ph_custom_cache_size: 10000
     ph_dhcp_active: false
-    ph_dnssec: true
     ph_dns_bogus_priv: true
     ph_dns_fqdn_required: true
+    ph_dnssec: true
     ph_ftlconf_local_ipv4: localhost
     ph_ipv6: true
     ph_pihole_dns: 9.9.9.9;9.9.9.10
@@ -32,7 +32,7 @@
     ph_ext_net: proxy-tier
     ph_project_name: ansible_docker_pihole
   roles:
-  - role: docker
+  - role: geerlingguy.docker
     tags: docker
   - role: ansible_docker_pihole
     tags: ansible_docker_pihole
