@@ -35,11 +35,6 @@
   become: true
   when: not compose_v1
 
-# Read this blogpost: https://forum.ansible.com/t/breaking-changes-with-pip-and-system-packages/2177
-- name: Overwrite the ansible_python_interpreter
-  set_fact:
-    ansible_python_interpreter: "{{ docker_utils_venv_path }}/bin/python"
-
 - name: Ensure repository paths are present
   file:
     path: "{{ item }}"
@@ -69,7 +64,7 @@
     mode: "600"
   check_mode: true
   register: repo_copy_test
-  when: not compose.stat.exists
+  when: compose.stat.exists
 
 - name: legacy | Stop services since compose has changed
   community.docker.docker_compose:
