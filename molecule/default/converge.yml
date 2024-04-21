@@ -20,4 +20,4 @@
       changed_when: false
       failed_when: systemctl_status.rc > 1
   roles:
-    - role: molecule_role_template
+    - role: ansible_docker_pihole
