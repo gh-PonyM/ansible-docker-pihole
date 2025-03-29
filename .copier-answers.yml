@@ -1,7 +1,7 @@
-_commit: 1.3.3-16-gbe0e23d
+_commit: 1.3.3-16-g745bc39
 _src_path: ../deploy-docker-compose-template
 ansible_defaults_prefix: ph_
-compose_file_path: /home/pony_m/Repos/ansible-operations/compose_files/pihole/docker-compose.yml
+compose_file_path: docker-compose.yml
 docker_user: dockerusr
 docker_user_id: 1002
 galaxy_author: PonyM

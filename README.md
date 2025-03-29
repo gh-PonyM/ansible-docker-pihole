@@ -4,7 +4,7 @@ Generated ansible role docker using docker compose for ansible_docker_pihole
 
 ## docker-compose.yml template
 
-The original [docker-compose.yml](/home/pony_m/Repos/ansible-operations/compose_files/pihole/docker-compose.yml) was transformed into an [ansible template](templates/docker-compose.yml)
+The original [docker-compose.yml](docker-compose.yml) was transformed into an [ansible template](templates/docker-compose.yml)
 
 ## Defaults
 
