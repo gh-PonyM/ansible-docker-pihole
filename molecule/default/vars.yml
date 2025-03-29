@@ -2,3 +2,6 @@
 
 docker_users:
   - dockerusr
+
+ph_host_port_pihole_53: 8080
+ph_host_port_pihole_80: 8081
