@@ -1,5 +1,5 @@
-_commit: 1.3.3-19-gc1ebc73
-_src_path: ../deploy-docker-compose-template
+_commit: 2.0.0
+_src_path: gl:lksch-group/deploy-docker-compose-template
 ansible_defaults_prefix: ph_
 compose_file_path: docker-compose.yml
 docker_user: dockerusr
