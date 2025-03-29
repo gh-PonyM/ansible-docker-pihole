@@ -1,0 +1,24 @@
+---
+
+- name: Stop services due to config change
+  community.docker.docker_compose_v2:
+    project_name: "{{ ph_project_name }}"
+    project_src: "{{ ph_repository_src }}"
+    state: absent
+  become_user: "{{ docker_deployment_user }}"
+  when:
+    - not compose_v1
+  listen:
+    - ph_service_stop
+
+- name: legacy | Stop services due to config change
+  community.docker.docker_compose:
+    project_name: "{{ ph_project_name }}"
+    project_src: "{{ ph_repository_src }}"
+    debug: true
+    state: absent
+  become_user: "{{ docker_deployment_user }}"
+  when:
+    - compose_v1
+  listen:
+    - ph_service_stop

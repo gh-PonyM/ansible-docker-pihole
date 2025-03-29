@@ -1,2 +1,5 @@
+.venv
+venv
 .idea/
-.venv/
+molecule/default/roles
+molecule/default/collections

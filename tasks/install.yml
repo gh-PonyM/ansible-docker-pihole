@@ -1,50 +1,31 @@
 ---
 
-- name: ensure deployment user for ansible_docker_pihole
+- name: Ensure deployment user for ansible_docker_pihole
   user:
-    name: "{{ ph_user }}"
+    name: "{{ docker_deployment_user }}"
     state: "{{ ph_state | default('present') }}"
     create_home: true
-    uid: "{{ ph_user_id }}"
+    uid: "{{ docker_deployment_user_id }}"
     shell: /bin/bash
 
 - name: Ensure user is added to the docker group.
   user:
-    name: "{{ ph_user }}"
+    name: "{{ docker_deployment_user }}"
     groups: docker
     append: true
-
-# Issues with docker python package >=7.0.0
-# https://github.com/docker/docker-py/releases/tag/7.0.0
-# https://github.com/docker/docker-py/issues/3194
-- name: legacy | Ensure docker python packages compose v1
-  pip:
-    name:
-      - docker==6.1.3
-      - docker-compose
-  become: true
-  become_user: "{{ ph_user }}"
-  when: compose_v1
-
-- name: Install Docker dependencies for modules
-  apt:
-    name:
-      - python3-docker
-      - python3-requests
-    update_cache: true
-  become: true
-  when: not compose_v1
 
 - name: Ensure repository paths are present
   file:
     path: "{{ item }}"
     state: directory
-    owner: "{{ ph_user }}"
+    owner: "{{ docker_deployment_user }}"
+    group: "{{ docker_deployment_user }}"
+  become: true
   loop:
-   - "{{ repository_src }}"
-   - "{{ repository_src }}/scripts"
+   - "{{ ph_repository_src }}"
+   - "{{ ph_repository_src }}/scripts"
 
-- name: ensure external network exists
+- name: Ensure external network exists
   community.docker.docker_network:
     name: "{{ ph_ext_net }}"
     driver: bridge
@@ -53,118 +34,96 @@
 
 - name: Check if docker-compose.yml exists
   stat:
-    path: "{{ repository_src }}/docker-compose.yml"
+    path: "{{ ph_repository_src }}/docker-compose.yml"
   register: compose
 
 - name: test docker-compose changed
   template:
     src: "docker-compose.yml"
-    dest: "{{ repository_src }}/docker-compose.yml"
-    owner: "{{ ph_user }}"
+    dest: "{{ ph_repository_src }}/docker-compose.yml"
+    owner: "{{ docker_deployment_user }}"
     mode: "600"
   check_mode: true
-  register: repo_copy_test
+  notify: ph_service_stop
   when: compose.stat.exists
 
-- name: legacy | Stop services since compose has changed
-  community.docker.docker_compose:
-    project_name: "{{ ph_project_name }}"
-    project_src: "{{ repository_src }}"
-    state: absent
-    files:
-      - docker-compose.yml
-  become_user: "{{ ph_user }}"
-  when:
-  - compose_v1
-  - not ph_remove
-  - compose.stat.exists
-  - repo_copy_test.changed
-
-- name: Stop services since compose has changed
-  community.docker.docker_compose_v2:
-    project_name: "{{ ph_project_name }}"
-    project_src: "{{ repository_src }}"
-    state: absent
-    files:
-      - docker-compose.yml
-  become_user: "{{ ph_user }}"
-  when:
-  - not compose_v1
-  - not ph_remove
-  - compose.stat.exists
-  - repo_copy_test.changed
+- meta: flush_handlers
 
 - name: Copy docker-compose.yml
   template:
     src: "docker-compose.yml"
-    dest: "{{ repository_src }}/docker-compose.yml"
-    owner: "{{ ph_user }}"
+    dest: "{{ ph_repository_src }}/docker-compose.yml"
+    owner: "{{ docker_deployment_user }}"
+    group: "{{ docker_deployment_user }}"
     mode: "600"
-  register: repo_copy
 
-- name: Run pre-start commands
-  command: "{{ item }}"
-  loop: "{{ ph_pre_startup_commands }}"
-  become_user: "{{ ph_user }}"
+- include_tasks: run_cmds.yml
+  vars:
+    cmds: "{{ ph_pre_startup_commands }}"
+    remove_script: "{{ ph_pre_startup_script_remove }}"
+    script_content: "{{ ph_pre_startup_script }}"
+    script_name: pre_startup.sh
+  when: ph_state == 'present'
 
 - name: legacy | Ensure services are {{ ph_state }}
   community.docker.docker_compose:
     project_name: "{{ ph_project_name }}"
-    project_src: "{{ repository_src }}"
+    project_src: "{{ ph_repository_src }}"
     debug: true
     state: "{{ ph_state }}"
     build: false
     files:
       - docker-compose.yml
-  become_user: "{{ ph_user }}"
+  become_user: "{{ docker_deployment_user }}"
   when:
     - compose_v1
-    - not ph_remove
 
 # Requires community.docker >= 3.8.0. ansible-galaxy does not handle collection dependencies in roles meta/main.yml
 - name: Ensure services are {{ ph_state }}
   community.docker.docker_compose_v2:
     project_name: "{{ ph_project_name }}"
-    project_src: "{{ repository_src }}"
+    project_src: "{{ ph_repository_src }}"
     state: "{{ ph_state }}"
-    build: never
     files:
       - docker-compose.yml
-  become_user: "{{ ph_user }}"
+  become_user: "{{ docker_deployment_user }}"
   when:
     - not compose_v1
-    - not ph_remove
 
-- name: Run post-shutdown commands
-  command: "{{ item }}"
-  loop: "{{ ph_post_shutdown_commands }}"
-  become_user: "{{ ph_user }}"
+- include_tasks: run_cmds.yml
+  vars:
+    cmds: "{{ ph_post_startup_commands }}"
+    remove_script: "{{ ph_post_startup_script_remove }}"
+    script_content: "{{ ph_post_startup_script }}"
+    script_name: post_startup.sh
+  when: "{{ ph_state == 'present' }}"
 
 - name: Put auto-update script
   copy:
     content: |
       #!/usr/bin/env bash
       
-      set - eu
-      cd {{ repository_src }}
+      set -eu
+      cd {{ ph_repository_src }}
       docker compose pull
       docker compose up -d
 
-    dest: "{{ repository_src }}/autoupdate.sh"
-    owner: "{{ ph_user }}"
+    dest: "{{ ph_repository_src }}/autoupdate.sh"
+    owner: "{{ docker_deployment_user }}"
+    group: "{{ docker_deployment_user }}"
     mode: "770"
   when: ph_auto_update
 
 - name: Set auto-update cron to {{ cron_state }}
   cron:
     name: update all services for ansible_docker_pihole
-    job: "{{ repository_src }}/autoupdate.sh"
+    job: "{{ ph_repository_src }}/autoupdate.sh"
     hour: "{{ ph_auto_update_cron_hour }}"
     minute: "{{ ph_auto_update_cron_minute }}"
     weekday: "{{ ph_auto_update_cron_weekday }}"
     month: "{{ ph_auto_update_cron_month }}"
-    user: "{{ ph_user }}"
+    user: "{{ docker_deployment_user }}"
     state: "{{ cron_state }}"
-  become_user: "{{ ph_user }}"
+  become_user: "{{ docker_deployment_user }}"
   vars:
     cron_state: "{{ 'present' if ph_auto_update else 'absent' }}"

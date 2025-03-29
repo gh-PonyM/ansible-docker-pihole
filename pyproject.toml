@@ -2,7 +2,7 @@
 name = "ansible-molecule"
 version = "0.1.0"
 description = "Deps for test container"
-authors = ["PonyM <dev@lksch.ch>"]
+authors = ["gh-PonyM <dev@lksch.ch>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]

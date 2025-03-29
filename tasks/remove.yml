@@ -1,14 +1,24 @@
 ---
 
-- name: ensure compose setup is stopped
+- name: legacy | Ensure compose setup is stopped
   community.docker.docker_compose:
     project_name: "{{ ph_project_name }}"
-    project_src: "{{ repository_src }}"
+    project_src: "{{ ph_repository_src }}"
     debug: true
     state: absent
   become_user: "{{ ph_user }}"
+  when: compose_v1
+
+- name: Ensure compose setup is stopped
+  community.docker.docker_compose_v2:
+    project_name: "{{ ph_project_name }}"
+    project_src: "{{ ph_repository_src }}"
+    state: absent
+  become_user: "{{ ph_user }}"
+  when: not compose_v1
 
 - name: Ensure repository path is absent
   file:
-    path: "{{ repository_src }}"
+    path: "{{ ph_repository_src }}"
     state: absent
+  become: true

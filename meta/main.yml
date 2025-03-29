@@ -1,0 +1,9 @@
+---
+galaxy_info:
+  role_name: ansible_docker_pihole
+  namespace: gh_ponym
+  author: gh-PonyM
+  description: Generated ansible role docker using docker compose for ansible_docker_pihole
+  company: 
+  license: MIT license
+  min_ansible_version: "2.1"
