@@ -25,13 +25,6 @@
    - "{{ ph_repository_src }}"
    - "{{ ph_repository_src }}/scripts"
 
-- name: Ensure external network exists
-  community.docker.docker_network:
-    name: "{{ ph_ext_net }}"
-    driver: bridge
-    attachable: true
-    state: present
-
 - name: Check if docker-compose.yml exists
   stat:
     path: "{{ ph_repository_src }}/docker-compose.yml"
