@@ -7,7 +7,7 @@ dependency:
 driver:
   name: docker
 platforms:
-  - name: "instance-${MOLECULE_DISTRO:-ubuntu2204}-ansible_docker_pihole"
+  - name: "instance-${MOLECULE_DISTRO:-ubuntu2204}-ansible-docker-pihole"
     image: "geerlingguy/docker-${MOLECULE_DISTRO:-ubuntu2204}-ansible:latest"
     command: ${MOLECULE_DOCKER_COMMAND:-""}
     volumes:

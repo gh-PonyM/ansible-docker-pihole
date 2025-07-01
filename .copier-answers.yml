@@ -1,4 +1,4 @@
-_commit: 2.0.0
+_commit: 2.0.0-1-gee30851
 _src_path: gl:lksch-group/deploy-docker-compose-template
 ansible_defaults_prefix: ph_
 compose_file_path: docker-compose.yml
@@ -16,7 +16,7 @@ molecule_distros:
 - debian12
 molecule_docker_test: true
 project_description: Generated ansible role docker using docker compose for ansible_docker_pihole
-project_name: ansible_docker_pihole
+project_name: ansible-docker-pihole
 proxy_container_net_attach: ''
 remove_cli_artefact: true
 role_name: ansible_docker_pihole
