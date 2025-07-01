@@ -2,6 +2,19 @@
 
 Generated ansible role docker using docker compose for ansible_docker_pihole
 
+## Installation
+
+Install the role using `ansible-galaxy` using a `requirements.yml` file:
+
+```yaml
+
+roles:
+- src: https://github.com/gh-PonyM/ansible_docker_pihole.git
+  version: main
+  name: ansible_docker_pihole
+  scm: git
+```
+
 ## docker-compose.yml template
 
 The original [docker-compose.yml](docker-compose.yml) was transformed into an [ansible template](templates/docker-compose.yml)

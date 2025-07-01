@@ -1,4 +1,4 @@
-_commit: 2.0.0-1-gee30851
+_commit: 2.0.0-7-g11cd444
 _src_path: gl:lksch-group/deploy-docker-compose-template
 ansible_defaults_prefix: ph_
 compose_file_path: docker-compose.yml
@@ -7,7 +7,10 @@ docker_user_id: 1002
 galaxy_author: PonyM
 galaxy_role_namespace: gh_ponym
 galaxy_tags: []
+git_host: github.com
+github_repo_name: ansible-docker-pihole
 github_user: gh-PonyM
+init_git: true
 license: MIT license
 min_ansible_version: '2.1'
 min_secret_length: 17
